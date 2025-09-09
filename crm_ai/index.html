@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <title>Salesflow X – CRM Assistant</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <!-- Important for iOS safe areas -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
   <style>
     :root{
@@ -11,7 +12,8 @@
       --panel:#ffffff;
       --accent:#33B04A;
       --ink:#0D333F;
-      --qc-width:260px; /* drawer width */
+      --qc-width:260px;           /* desktop drawer width */
+      --qc-mobile-h:52vh;         /* mobile drawer height */
     }
     *{box-sizing:border-box}
     body {
@@ -24,17 +26,16 @@
       min-height: 100vh;
       transition: padding-left .25s ease;
     }
-    /* When drawer opens on desktop, shift layout so no overlap */
+    /* Shift content on desktop when drawer opens so nothing overlaps */
     @media (min-width: 992px) {
-      body.qc-open {
-        padding-left: calc(var(--qc-width) + 20px);
-      }
+      body.qc-open { padding-left: calc(var(--qc-width) + 20px); }
     }
 
     #mainContent {
       flex: 1;
       max-width: 1100px;
       margin: 0 auto;
+      transition: padding-bottom .25s ease;
     }
 
     #header {
@@ -45,17 +46,8 @@
       margin-bottom: 20px;
     }
 
-    #header img {
-      height: 60px;
-      margin-bottom: 10px;
-    }
-
-    #header h1 {
-      font-size: 26px;
-      font-weight: 700;
-      color: #ffffff;
-      margin: 0;
-    }
+    #header img { height: 60px; margin-bottom: 10px; }
+    #header h1 { font-size: 26px; font-weight: 700; color: #ffffff; margin: 0; }
 
     #intro {
       color: #f1f1f1;
@@ -76,11 +68,7 @@
       min-height: 55vh;
     }
 
-    #messages {
-      flex: 1;
-      overflow: auto;
-      padding-right: 6px;
-    }
+    #messages { flex: 1; overflow: auto; padding-right: 6px; }
 
     .msg {
       padding: 10px 15px;
@@ -92,42 +80,13 @@
       white-space: pre-wrap;
     }
 
-    .user {
-      background: var(--accent);
-      text-align: right;
-      margin-left: auto;
-      color: #fff;
-    }
+    .user { background: var(--accent); text-align: right; margin-left: auto; color: #fff; }
+    .bot  { background: #dcd9e6; text-align: left; margin-right: auto; color: #000; }
+    .sys  { background: #fff6e5; color: #6b4e00; border: 1px dashed #f2cf73; margin: 12px auto; max-width: 95%; }
 
-    .bot {
-      background: #dcd9e6;
-      text-align: left;
-      margin-right: auto;
-      color: #000;
-    }
+    .typing { font-style: italic; color: gray; margin-top: 2px; display:none; }
 
-    .sys {
-      background: #fff6e5;
-      color: #6b4e00;
-      border: 1px dashed #f2cf73;
-      margin: 12px auto;
-      max-width: 95%;
-    }
-
-    .typing {
-      font-style: italic;
-      color: gray;
-      margin-top: 2px;
-      display:none;
-    }
-
-    #inputArea {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-      flex-wrap: wrap;
-    }
-
+    #inputArea { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
     #input {
       flex: 1 1 200px;
       padding: 10px;
@@ -135,19 +94,10 @@
       border-radius: 6px;
       font-family: inherit;
     }
-
-    button {
-      padding: 10px 16px;
-      border: none;
-      background: var(--accent);
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
-    }
+    button { padding: 10px 16px; border: none; background: var(--accent); color: white; border-radius: 6px; cursor: pointer; font-weight: 600; }
     button[disabled]{opacity:.65;cursor:not-allowed}
 
-    /* ---------------- QUICK CHAT (drawer + mini arrow) ---------------- */
+    /* ---------------- QUICK CHAT (drawer + arrow FAB) ---------------- */
     /* Drawer panel */
     .qc-panel {
       position: fixed;
@@ -167,39 +117,14 @@
       flex-direction: column;
       gap: 8px;
     }
-    .qc-panel.open {
-      transform: translateX(0);
-    }
+    .qc-panel.open { transform: translateX(0); }
 
-    .qc-title {
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--ink);
-      margin: 2px 2px 6px;
-    }
-    .qc-subtle {
-      font-size: 11px;
-      color: #4b5563;
-      margin: 0 2px 6px;
-    }
-    .qc-list {
-      overflow: auto;
-      padding-right: 2px;
-      scrollbar-width: thin;
-      flex: 1;
-    }
-    .qc-btn {
-      width: 100%;
-      margin: 6px 0;
-      padding: 10px 12px;
-      background: var(--accent);
-      color: #fff;
-      border-radius: 8px;
-      font-size: 13px;
-      font-weight: 600;
-      border: none;
-      cursor: pointer;
-      text-align: left;
+    .qc-title  { font-size: 14px; font-weight: 700; color: var(--ink); margin: 2px 2px 6px; }
+    .qc-subtle { font-size: 11px; color: #4b5563; margin: 0 2px 6px; }
+    .qc-list   { overflow: auto; padding-right: 2px; scrollbar-width: thin; flex: 1; }
+    .qc-btn    {
+      width: 100%; margin: 6px 0; padding: 10px 12px; background: var(--accent); color: #fff;
+      border-radius: 8px; font-size: 13px; font-weight: 600; border: none; cursor: pointer; text-align: left;
       transition: transform 0.06s ease, opacity 0.06s ease;
     }
     .qc-btn:hover { opacity: 0.95; }
@@ -211,42 +136,29 @@
       left: 14px;
       top: 50%;
       transform: translateY(-50%);
-      width: 42px;
-      height: 42px;
+      width: 42px; height: 42px;
       border-radius: 999px;
-      background: #0B2A32;
-      color: #fff;
-      border: 2px solid #0a2430;
+      background: #0B2A32; color: #fff; border: 2px solid #0a2430;
       box-shadow: 0 8px 20px rgba(0,0,0,0.25);
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      z-index: 1100;
+      display: inline-flex; align-items: center; justify-content: center;
+      cursor: pointer; z-index: 1100;
       transition: transform .25s ease, left .25s ease, background .15s ease;
     }
     .qc-fab:hover { background:#0d3340; }
-    .qc-fab span {
-      font-size: 18px;
-      line-height: 1;
-      user-select: none;
-    }
-    /* When open, move button to panel edge & flip arrow */
-    .qc-open .qc-fab {
-      left: calc(var(--qc-width) + 14px);
-    }
+    .qc-fab span { font-size: 18px; line-height: 1; user-select: none; }
+    .qc-open .qc-fab { left: calc(var(--qc-width) + 14px); }
     .qc-fab[data-open="false"] span::before { content: "›"; } /* right arrow */
     .qc-fab[data-open="true"]  span::before { content: "‹"; } /* left arrow */
 
-    /* Mobile tweaks: bottom-left FAB, overlay panel */
+    /* Mobile: bottom-left FAB & overlay panel that won't cover input */
     @media (max-width: 991px) {
       .qc-panel {
         top: auto;
         left: 10px;
         right: 10px;
-        bottom: 76px;
+        height: var(--qc-mobile-h);
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 76px); /* keep above input/footer */
         width: auto;
-        height: 60vh;
         border-radius: 12px;
         transform: translateY(calc(100% + 12px));
       }
@@ -254,12 +166,15 @@
 
       .qc-fab {
         top: auto;
-        bottom: 16px;
+        bottom: calc(env(safe-area-inset-bottom, 0px) + 16px);
         left: 16px;
         transform: none;
       }
-      /* On mobile we don't push body; it's an overlay */
-      body.qc-open { padding-left: 20px; }
+
+      /* When drawer is open on mobile, add bottom padding so input stays visible */
+      body.qc-open #mainContent {
+        padding-bottom: calc(var(--qc-mobile-h) + 110px);
+      }
     }
     /* ------------------------------------------------------------------ */
   </style>
@@ -301,24 +216,12 @@
 
   <script>
     // ---------- CONFIG ----------
-    // For ACTIVE workflows use:  https://.../webhook/<path>
-    // For TEST in editor use:   https://.../webhook-test/<path>  (only while Test is running)
     const CONFIG = {
-      WEBHOOK_URL: "https://automations-salesflowx.app.n8n.cloud/webhook/salesflowxclientsheet",
+      WEBHOOK_URL: "https://automations-salesflowx.app.n8n.cloud/webhook/salesflowxclientsheet", // change if needed
       SESSION_ID: "sfx-static-session-id"
     };
 
-    // Quick Chat names
-    const qcNames = [
-      "Elizabeth",
-      "Prasanna",
-      "Sathya",
-      "Asai",
-      "Saravanan",
-      "Dhilip",
-      "Nandha",
-      "Soundar"
-    ];
+    const qcNames = ["Elizabeth","Prasanna","Sathya","Asai","Saravanan","Dhilip","Nandha","Soundar"];
 
     function handleKey(e) { if (e.key === "Enter") sendMessage(); }
 
@@ -342,10 +245,7 @@
 
         if (!res.ok) {
           if (res.status === 404) {
-            addMsg(
-              "⚠️ 404 from server.\n• Use /webhook-test/... only while Test is active in n8n editor.\n• Use /webhook/... for activated workflows.\n• Verify the exact webhook path.",
-              "sys"
-            );
+            addMsg("⚠️ 404 from server.\n• Use /webhook-test/... only while Test is active in n8n editor.\n• Use /webhook/... for activated workflows.\n• Verify the exact webhook path.", "sys");
           } else {
             addMsg(`⚠️ Server responded with ${res.status} ${res.statusText}`, "sys");
           }
@@ -373,19 +273,13 @@
       document.getElementById("messages").appendChild(div);
       div.scrollIntoView({ behavior: "smooth" });
     }
-
-    function setTyping(isTyping){
-      document.getElementById("typingIndicator").style.display = isTyping ? "block" : "none";
-    }
+    function setTyping(isTyping){ document.getElementById("typingIndicator").style.display = isTyping ? "block" : "none"; }
     function setSendDisabled(disabled){
       const btn = document.getElementById("sendBtn");
       btn.disabled = disabled;
       btn.textContent = disabled ? "Sending..." : "Send";
     }
-    function scrollMessagesToEnd(){
-      const m = document.getElementById("messages");
-      m.scrollTop = m.scrollHeight;
-    }
+    function scrollMessagesToEnd(){ const m = document.getElementById("messages"); m.scrollTop = m.scrollHeight; }
 
     // --------- QUICK CHAT drawer logic ----------
     function buildQuickChat() {
@@ -406,17 +300,14 @@
       const input = document.getElementById("input");
       input.value = msg;
       input.focus();
-      // Auto-send if you prefer:
-      // document.getElementById("sendBtn").click();
-
-      // On mobile, collapse drawer after selecting
+      // document.getElementById("sendBtn").click(); // enable to auto-send
       if (window.matchMedia("(max-width: 991px)").matches) toggleQuickChat(false);
     }
 
     function toggleQuickChat(forceOpen){
-      const body = document.body;
+      const body  = document.body;
       const panel = document.getElementById("qcPanel");
-      const fab = document.getElementById("qcFab");
+      const fab   = document.getElementById("qcFab");
 
       const currentlyOpen = panel.classList.contains("open");
       const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : !currentlyOpen;
@@ -425,15 +316,18 @@
       fab.dataset.open = shouldOpen ? "true" : "false";
       fab.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
       body.classList.toggle("qc-open", shouldOpen);
+
+      // On mobile, make sure the input is kept in view above the panel
+      if (shouldOpen && window.matchMedia("(max-width: 991px)").matches) {
+        const input = document.getElementById("input");
+        setTimeout(() => input.scrollIntoView({ behavior: "smooth", block: "end" }), 150);
+      }
     }
 
     function initQuickChat() {
       buildQuickChat();
-      const fab = document.getElementById("qcFab");
-      fab.addEventListener("click", () => toggleQuickChat());
-
-      // Desktop: start closed; user opens if needed
-      toggleQuickChat(false);
+      document.getElementById("qcFab").addEventListener("click", () => toggleQuickChat());
+      toggleQuickChat(false); // start closed everywhere
     }
     // ---------------------------------------------
 
