@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Salesflow X – CRM Assistant</title>
-  <!-- Important for iOS safe areas -->
+  <!-- iOS safe areas -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
   <style>
@@ -13,7 +13,8 @@
       --accent:#33B04A;
       --ink:#0D333F;
       --qc-width:260px;           /* desktop drawer width */
-      --qc-mobile-h:52vh;         /* mobile drawer height */
+      --qc-mobile-h:48vh;         /* mobile drawer height */
+      --input-h:92px;             /* will be set dynamically via JS */
     }
     *{box-sizing:border-box}
     body {
@@ -66,6 +67,7 @@
       display: flex;
       flex-direction: column;
       min-height: 55vh;
+      position: relative;
     }
 
     #messages { flex: 1; overflow: auto; padding-right: 6px; }
@@ -86,7 +88,21 @@
 
     .typing { font-style: italic; color: gray; margin-top: 2px; display:none; }
 
-    #inputArea { display: flex; gap: 10px; margin-top: 15px; flex-wrap: wrap; }
+    /* Sticky, always-on-top input area (so the drawer can never cover it) */
+    #inputArea {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+      position: sticky;
+      bottom: calc(env(safe-area-inset-bottom, 0px));
+      background: #fff;
+      z-index: 1200; /* higher than drawer */
+      padding-bottom: calc(env(safe-area-inset-bottom, 0px));
+      border-top: 1px solid #eee;
+      padding-top: 10px;
+    }
+
     #input {
       flex: 1 1 200px;
       padding: 10px;
@@ -150,14 +166,15 @@
     .qc-fab[data-open="false"] span::before { content: "›"; } /* right arrow */
     .qc-fab[data-open="true"]  span::before { content: "‹"; } /* left arrow */
 
-    /* Mobile: bottom-left FAB & overlay panel that won't cover input */
+    /* Mobile: bottom-left FAB & overlay panel that never covers input */
     @media (max-width: 991px) {
       .qc-panel {
         top: auto;
         left: 10px;
         right: 10px;
         height: var(--qc-mobile-h);
-        bottom: calc(env(safe-area-inset-bottom, 0px) + 76px); /* keep above input/footer */
+        /* keep ABOVE input area using actual input height */
+        bottom: calc(env(safe-area-inset-bottom, 0px) + var(--input-h) + 12px);
         width: auto;
         border-radius: 12px;
         transform: translateY(calc(100% + 12px));
@@ -171,9 +188,9 @@
         transform: none;
       }
 
-      /* When drawer is open on mobile, add bottom padding so input stays visible */
+      /* When drawer is open on mobile, add bottom padding so content isn't cramped */
       body.qc-open #mainContent {
-        padding-bottom: calc(var(--qc-mobile-h) + 110px);
+        padding-bottom: calc(var(--qc-mobile-h) + var(--input-h) + 40px);
       }
     }
     /* ------------------------------------------------------------------ */
@@ -195,7 +212,7 @@
 
   <div id="mainContent">
     <div id="header">
-      <img src="https://www.salesflowx.com/assets/img/sfx-logo.svg" alt="Salesflow X Logo" />
+      <!-- Replace with your header/logo -->
       <h1>CRM Assistant</h1>
     </div>
 
@@ -317,17 +334,32 @@
       fab.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
       body.classList.toggle("qc-open", shouldOpen);
 
-      // On mobile, make sure the input is kept in view above the panel
-      if (shouldOpen && window.matchMedia("(max-width: 991px)").matches) {
-        const input = document.getElementById("input");
-        setTimeout(() => input.scrollIntoView({ behavior: "smooth", block: "end" }), 150);
+      // On mobile, make sure the input is visible and clickable
+      if (window.matchMedia("(max-width: 991px)").matches) {
+        // Recompute input height and update CSS variable for precise spacing
+        updateInputHeightVar();
+        if (shouldOpen) {
+          const input = document.getElementById("input");
+          setTimeout(() => input.scrollIntoView({ behavior: "smooth", block: "end" }), 150);
+        }
       }
     }
 
     function initQuickChat() {
       buildQuickChat();
       document.getElementById("qcFab").addEventListener("click", () => toggleQuickChat());
-      toggleQuickChat(false); // start closed everywhere
+      toggleQuickChat(false); // start closed
+      updateInputHeightVar();
+      // Keep --input-h updated on rotate/resize
+      window.addEventListener("resize", updateInputHeightVar);
+    }
+
+    // Measure actual input area height and store in CSS var --input-h
+    function updateInputHeightVar(){
+      const ia = document.getElementById("inputArea");
+      if (!ia) return;
+      const h = Math.ceil(ia.getBoundingClientRect().height);
+      document.documentElement.style.setProperty('--input-h', h + 'px');
     }
     // ---------------------------------------------
 
