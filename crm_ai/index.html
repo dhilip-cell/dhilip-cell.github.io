@@ -11,6 +11,7 @@
       --panel:#ffffff;
       --accent:#33B04A;
       --ink:#0D333F;
+      --qc-width:260px; /* drawer width */
     }
     *{box-sizing:border-box}
     body {
@@ -21,13 +22,12 @@
       display: flex;
       flex-direction: column;
       min-height: 100vh;
-      gap: 20px;
+      transition: padding-left .25s ease;
     }
-
-    @media (min-width: 768px) {
-      body {
-        flex-direction: row;
-        align-items: flex-start;
+    /* When drawer opens on desktop, shift layout so no overlap */
+    @media (min-width: 992px) {
+      body.qc-open {
+        padding-left: calc(var(--qc-width) + 20px);
       }
     }
 
@@ -145,85 +145,49 @@
       cursor: pointer;
       font-weight: 600;
     }
+    button[disabled]{opacity:.65;cursor:not-allowed}
 
-    button[disabled]{
-      opacity:.65;
-      cursor:not-allowed;
-    }
-
-    /* ---------------- QUICK CHAT (desktop & mobile) ---------------- */
-    .qc-container {
+    /* ---------------- QUICK CHAT (drawer + mini arrow) ---------------- */
+    /* Drawer panel */
+    .qc-panel {
       position: fixed;
-      left: 16px;
-      z-index: 9999;
+      left: 0;
+      top: 20px;
+      bottom: 20px;
+      width: var(--qc-width);
+      background: var(--panel);
+      border-right: 1px solid #e5e7eb;
+      border-radius: 0 14px 14px 0;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.18);
+      padding: 12px 12px 14px;
+      transform: translateX(calc(-1 * var(--qc-width)));
+      transition: transform .25s ease;
+      z-index: 1000;
       display: flex;
       flex-direction: column;
       gap: 8px;
-      font-family: 'Poppins', sans-serif;
     }
-
-    /* Desktop: vertically centered left side */
-    @media (min-width: 768px) {
-      .qc-container {
-        top: 50%;
-        transform: translateY(-50%);
-      }
-    }
-
-    /* Mobile: bottom-left with toggle */
-    @media (max-width: 767px) {
-      .qc-container {
-        bottom: 16px;
-      }
-    }
-
-    .qc-toggle {
-      display: none; /* hidden on desktop */
-    }
-
-    @media (max-width: 767px) {
-      .qc-toggle {
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        padding: 10px 14px;
-        background: var(--bg);
-        color: #fff;
-        border-radius: 999px;
-        font-weight: 700;
-        box-shadow: 0 6px 16px rgba(0,0,0,0.25);
-        cursor: pointer;
-        border: 2px solid #0d2a33;
-      }
-    }
-
-    .qc-panel {
-      width: 220px;
-      max-height: 70vh;
-      overflow: auto;
-      background: var(--panel);
-      border-radius: 12px;
-      box-shadow: 0 10px 24px rgba(0,0,0,0.2);
-      padding: 10px;
-      border: 1px solid #e5e7eb;
-    }
-
-    @media (max-width: 767px) {
-      .qc-panel {
-        display: none; /* hidden until toggle on mobile */
-      }
-      .qc-panel.open {
-        display: block;
-      }
+    .qc-panel.open {
+      transform: translateX(0);
     }
 
     .qc-title {
       font-size: 14px;
       font-weight: 700;
       color: var(--ink);
-      margin: 6px 8px 10px;
+      margin: 2px 2px 6px;
     }
-
+    .qc-subtle {
+      font-size: 11px;
+      color: #4b5563;
+      margin: 0 2px 6px;
+    }
+    .qc-list {
+      overflow: auto;
+      padding-right: 2px;
+      scrollbar-width: thin;
+      flex: 1;
+    }
     .qc-btn {
       width: 100%;
       margin: 6px 0;
@@ -241,25 +205,77 @@
     .qc-btn:hover { opacity: 0.95; }
     .qc-btn:active { transform: scale(0.98); }
 
-    .qc-subtle {
-      font-size: 11px;
-      color: #4b5563;
-      margin: 0 8px 8px;
+    /* Arrow FAB */
+    .qc-fab {
+      position: fixed;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 42px;
+      height: 42px;
+      border-radius: 999px;
+      background: #0B2A32;
+      color: #fff;
+      border: 2px solid #0a2430;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.25);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      z-index: 1100;
+      transition: transform .25s ease, left .25s ease, background .15s ease;
     }
-    /* --------------------------------------------------------------- */
+    .qc-fab:hover { background:#0d3340; }
+    .qc-fab span {
+      font-size: 18px;
+      line-height: 1;
+      user-select: none;
+    }
+    /* When open, move button to panel edge & flip arrow */
+    .qc-open .qc-fab {
+      left: calc(var(--qc-width) + 14px);
+    }
+    .qc-fab[data-open="false"] span::before { content: "›"; } /* right arrow */
+    .qc-fab[data-open="true"]  span::before { content: "‹"; } /* left arrow */
+
+    /* Mobile tweaks: bottom-left FAB, overlay panel */
+    @media (max-width: 991px) {
+      .qc-panel {
+        top: auto;
+        left: 10px;
+        right: 10px;
+        bottom: 76px;
+        width: auto;
+        height: 60vh;
+        border-radius: 12px;
+        transform: translateY(calc(100% + 12px));
+      }
+      .qc-panel.open { transform: translateY(0); }
+
+      .qc-fab {
+        top: auto;
+        bottom: 16px;
+        left: 16px;
+        transform: none;
+      }
+      /* On mobile we don't push body; it's an overlay */
+      body.qc-open { padding-left: 20px; }
+    }
+    /* ------------------------------------------------------------------ */
   </style>
 </head>
 <body>
 
-  <!-- QUICK CHAT: floating left panel (desktop) & toggle (mobile) -->
-  <div class="qc-container" aria-live="polite">
-    <button class="qc-toggle" aria-expanded="false" aria-controls="qcPanel">Quick Chat</button>
-    <div id="qcPanel" class="qc-panel" role="region" aria-label="Quick chat names">
-      <div class="qc-title">Quick Chat</div>
-      <p class="qc-subtle">Insert a ready message into the chat box:</p>
-      <div id="qcButtons"></div>
-    </div>
-  </div>
+  <!-- QUICK CHAT drawer -->
+  <button class="qc-fab" id="qcFab" aria-controls="qcPanel" aria-expanded="false" data-open="false" title="Quick Chat">
+    <span aria-hidden="true"></span>
+  </button>
+
+  <aside id="qcPanel" class="qc-panel" role="region" aria-label="Quick chat">
+    <div class="qc-title">Quick Chat</div>
+    <p class="qc-subtle">Click a name to prefill the chat box:</p>
+    <div id="qcList" class="qc-list" aria-live="polite"></div>
+  </aside>
   <!-- END QUICK CHAT -->
 
   <div id="mainContent">
@@ -285,15 +301,14 @@
 
   <script>
     // ---------- CONFIG ----------
-    // IMPORTANT:
-    // - For ACTIVE workflows use:  https://.../webhook/<path>
-    // - For TEST in editor use:   https://.../webhook-test/<path>  (only while "Test" is running)
+    // For ACTIVE workflows use:  https://.../webhook/<path>
+    // For TEST in editor use:   https://.../webhook-test/<path>  (only while Test is running)
     const CONFIG = {
       WEBHOOK_URL: "https://automations-salesflowx.app.n8n.cloud/webhook/salesflowxclientsheet",
       SESSION_ID: "sfx-static-session-id"
     };
 
-    // Names for Quick Chat buttons
+    // Quick Chat names
     const qcNames = [
       "Elizabeth",
       "Prasanna",
@@ -305,9 +320,7 @@
       "Soundar"
     ];
 
-    function handleKey(e) {
-      if (e.key === "Enter") sendMessage();
-    }
+    function handleKey(e) { if (e.key === "Enter") sendMessage(); }
 
     async function sendMessage() {
       const inputEl = document.getElementById("input");
@@ -328,13 +341,9 @@
         });
 
         if (!res.ok) {
-          // Add helpful hints for common 404 gotchas
           if (res.status === 404) {
             addMsg(
-              "⚠️ Received 404 from server.\n" +
-              "• If you are testing in the editor, use /webhook-test/... while the Test listener is active.\n" +
-              "• If your workflow is activated, use /webhook/...\n" +
-              "• Verify the exact path and that the workflow is active.",
+              "⚠️ 404 from server.\n• Use /webhook-test/... only while Test is active in n8n editor.\n• Use /webhook/... for activated workflows.\n• Verify the exact webhook path.",
               "sys"
             );
           } else {
@@ -343,12 +352,10 @@
         }
 
         let reply = "No response from bot";
-        // Attempt to parse JSON, but guard for non-JSON
-        let data = null;
-        try { data = await res.json(); } catch (e) {}
-        if (data) {
+        try {
+          const data = await res.json();
           reply = data?.[0]?.output || data?.output || JSON.stringify(data, null, 2);
-        }
+        } catch(e){}
         addMsg(reply, "bot");
       } catch (err) {
         addMsg("⚠️ Error contacting server. Check network / CORS / URL.", "sys");
@@ -370,21 +377,19 @@
     function setTyping(isTyping){
       document.getElementById("typingIndicator").style.display = isTyping ? "block" : "none";
     }
-
     function setSendDisabled(disabled){
       const btn = document.getElementById("sendBtn");
       btn.disabled = disabled;
       btn.textContent = disabled ? "Sending..." : "Send";
     }
-
     function scrollMessagesToEnd(){
       const m = document.getElementById("messages");
       m.scrollTop = m.scrollHeight;
     }
 
-    // ---------------- QUICK CHAT LOGIC ----------------
+    // --------- QUICK CHAT drawer logic ----------
     function buildQuickChat() {
-      const container = document.getElementById("qcButtons");
+      const container = document.getElementById("qcList");
       container.innerHTML = "";
       qcNames.forEach(name => {
         const btn = document.createElement("button");
@@ -401,40 +406,40 @@
       const input = document.getElementById("input");
       input.value = msg;
       input.focus();
-
-      // To auto-send on click, uncomment the next line:
+      // Auto-send if you prefer:
       // document.getElementById("sendBtn").click();
+
+      // On mobile, collapse drawer after selecting
+      if (window.matchMedia("(max-width: 991px)").matches) toggleQuickChat(false);
     }
 
-    function initQuickChatToggle() {
-      const toggle = document.querySelector(".qc-toggle");
+    function toggleQuickChat(forceOpen){
+      const body = document.body;
       const panel = document.getElementById("qcPanel");
+      const fab = document.getElementById("qcFab");
 
-      // Mobile: toggle open/close
-      toggle?.addEventListener("click", () => {
-        const isOpen = panel.classList.toggle("open");
-        toggle.setAttribute("aria-expanded", isOpen ? "true" : "false");
-      });
+      const currentlyOpen = panel.classList.contains("open");
+      const shouldOpen = typeof forceOpen === "boolean" ? forceOpen : !currentlyOpen;
 
-      // Desktop: keep panel visually open
-      if (window.matchMedia("(min-width: 768px)").matches) {
-        panel.classList.add("open"); // has no visual change on desktop, keeps logic consistent
-      }
-
-      // Mobile UX: close after selecting a name
-      document.getElementById("qcButtons").addEventListener("click", (e) => {
-        if (window.matchMedia("(max-width: 767px)").matches && e.target.classList.contains("qc-btn")) {
-          panel.classList.remove("open");
-          document.querySelector(".qc-toggle").setAttribute("aria-expanded", "false");
-        }
-      });
+      panel.classList.toggle("open", shouldOpen);
+      fab.dataset.open = shouldOpen ? "true" : "false";
+      fab.setAttribute("aria-expanded", shouldOpen ? "true" : "false");
+      body.classList.toggle("qc-open", shouldOpen);
     }
-    // --------------------------------------------------
+
+    function initQuickChat() {
+      buildQuickChat();
+      const fab = document.getElementById("qcFab");
+      fab.addEventListener("click", () => toggleQuickChat());
+
+      // Desktop: start closed; user opens if needed
+      toggleQuickChat(false);
+    }
+    // ---------------------------------------------
 
     window.onload = () => {
       addMsg("Hello! I'm your Salesflow X assistant. Ask me anything related to SFX Employee Performance.", "bot");
-      buildQuickChat();
-      initQuickChatToggle();
+      initQuickChat();
     };
   </script>
 </body>
