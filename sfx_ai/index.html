@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Get Free Quote – RK Ecran Assistant</title>
+  <title>RK Ecran Assistant</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
   <style>
@@ -120,6 +120,19 @@
       opacity: 0.65;
       cursor: not-allowed;
     }
+
+    /* Quick button inside chat */
+    .quick-btn {
+      display: inline-block;
+      margin-top: 8px;
+      background: var(--accent);
+      color: #fff;
+      padding: 6px 12px;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 600;
+    }
   </style>
 </head>
 <body>
@@ -134,7 +147,7 @@
       <div id="typingIndicator" class="typing">Assistant is typing...</div>
       <div id="inputArea">
         <input id="input" type="text" placeholder="Ask anything..." onkeydown="handleKey(event)" />
-        <button id="sendBtn" onclick="sendMessage()">Get Free Quote</button>
+        <button id="sendBtn" onclick="sendMessage()">Send</button>
       </div>
     </div>
   </div>
@@ -149,9 +162,9 @@
       if (e.key === "Enter") sendMessage();
     }
 
-    async function sendMessage() {
+    async function sendMessage(prefilledText) {
       const inputEl = document.getElementById("input");
-      const text = inputEl.value.trim();
+      const text = prefilledText || inputEl.value.trim();
       if (!text) return;
 
       addMsg(text, "user");
@@ -167,10 +180,16 @@
           body: JSON.stringify(payload)
         });
 
-        let reply = "No response from bot";
+        let reply = "⚠️ No response from bot";
         if (res.ok) {
           const data = await res.json();
-          reply = data?.[0]?.output || data?.output || "Response received.";
+          if (data?.[0]?.output) {
+            reply = data[0].output;
+          } else if (data?.output) {
+            reply = data.output;
+          } else {
+            reply = JSON.stringify(data, null, 2);
+          }
         } else {
           reply = `⚠️ Server responded with ${res.status} ${res.statusText}`;
         }
@@ -184,10 +203,21 @@
       }
     }
 
-    function addMsg(text, sender) {
+    function addMsg(text, sender, withQuickBtn = false) {
       const div = document.createElement("div");
       div.className = "msg " + sender;
       div.textContent = text;
+
+      // Add quick button under welcome message
+      if (withQuickBtn) {
+        const quickBtn = document.createElement("div");
+        quickBtn.className = "quick-btn";
+        quickBtn.textContent = "Get Free Quote";
+        quickBtn.onclick = () => sendMessage("I want a free quote");
+        div.appendChild(document.createElement("br"));
+        div.appendChild(quickBtn);
+      }
+
       document.getElementById("messages").appendChild(div);
       div.scrollIntoView({ behavior: "smooth" });
     }
@@ -199,7 +229,7 @@
     function setSendDisabled(disabled) {
       const btn = document.getElementById("sendBtn");
       btn.disabled = disabled;
-      btn.textContent = disabled ? "Sending..." : "Get Free Quote";
+      btn.textContent = disabled ? "Sending..." : "Send";
     }
 
     function scrollMessagesToEnd() {
@@ -208,7 +238,7 @@
     }
 
     window.onload = () => {
-      addMsg("👋 Hello! I'm your RK Ecran assistant. How can I help you today?", "bot");
+      addMsg("👋 Hello! I'm your RK Ecran assistant. How can I help you today?", "bot", true);
     };
   </script>
 </body>
