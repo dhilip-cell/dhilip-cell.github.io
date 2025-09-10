@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RK Ecran Chatbot</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 0; }
+    #chat-toggle {
+      position: fixed; bottom: 20px; right: 20px;
+      background: #4CAF50; border-radius: 50%;
+      width: 60px; height: 60px; cursor: pointer;
+      display: flex; align-items: center; justify-content: center;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    #chat-widget {
+      position: fixed; bottom: 90px; right: 20px;
+      width: 320px; height: 420px; background: #fff;
+      border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      display: none; flex-direction: column; overflow: hidden;
+    }
+    #chat-header {
+      background: #d32f2f; color: white; padding: 10px;
+      font-weight: bold; display: flex; justify-content: space-between; align-items: center;
+    }
+    #chat-messages { flex: 1; padding: 10px; overflow-y: auto; }
+    .message { margin: 5px 0; padding: 8px 12px; border-radius: 15px; max-width: 80%; }
+    .user { background: #4CAF50; color: white; align-self: flex-end; }
+    .bot { background: #f1f1f1; align-self: flex-start; }
+    #chat-input-area { display: flex; border-top: 1px solid #ccc; }
+    #chat-input { flex: 1; border: none; padding: 10px; }
+    #chat-send { background: #4CAF50; color: white; border: none; padding: 10px 15px; cursor: pointer; }
+    .quick-reply {
+      margin: 10px 5px; padding: 8px 12px;
+      background: #eee; border-radius: 15px; display: inline-block;
+      cursor: pointer; border: 1px solid #ccc;
+    }
+  </style>
+</head>
+<body>
+
+<!-- Floating Chat Button -->
+<div id="chat-toggle">
+  💬
+</div>
+
+<!-- Chat Widget -->
+<div id="chat-widget">
+  <div id="chat-header">
+    RK Ecran Chatbot
+    <span id="chat-close" style="cursor:pointer;">✖</span>
+  </div>
+  <div id="chat-messages"></div>
+  <div id="quick-replies">
+    <span class="quick-reply" onclick="sendQuickReply('Get Free Quote')">Get Free Quote</span>
+  </div>
+  <div id="chat-input-area">
+    <input id="chat-input" type="text" placeholder="Type your message...">
+    <button id="chat-send">Send</button>
+  </div>
+</div>
+
+<script>
+  const webhookUrl = "https://automations-salesflowx.app.n8n.cloud/webhook/d83ee857-5b2a-4416-aa9e-1bc90586d36a";
+
+  const chatToggle = document.getElementById("chat-toggle");
+  const chatWidget = document.getElementById("chat-widget");
+  const chatClose = document.getElementById("chat-close");
+  const chatMessages = document.getElementById("chat-messages");
+  const chatInput = document.getElementById("chat-input");
+  const chatSend = document.getElementById("chat-send");
+
+  chatToggle.onclick = () => chatWidget.style.display = "flex";
+  chatClose.onclick = () => chatWidget.style.display = "none";
+
+  function appendMessage(text, sender) {
+    let msg = document.createElement("div");
+    msg.className = "message " + sender;
+    msg.innerText = text;
+    chatMessages.appendChild(msg);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+
+  async function sendMessage(message) {
+    appendMessage(message, "user");
+    chatInput.value = "";
+
+    try {
+      let res = await fetch(webhookUrl, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: message })
+      });
+
+      let data = await res.json();
+      if (data.reply) appendMessage(data.reply, "bot");
+    } catch (e) {
+      // Silent fail, no "Error contacting server"
+    }
+  }
+
+  chatSend.onclick = () => {
+    if (chatInput.value.trim()) {
+      sendMessage(chatInput.value.trim());
+    }
+  };
+
+  chatInput.addEventListener("keypress", function(e) {
+    if (e.key === "Enter" && chatInput.value.trim()) {
+      sendMessage(chatInput.value.trim());
+    }
+  });
+
+  function sendQuickReply(text) {
+    sendMessage(text);
+  }
+</script>
+
+</body>
+</html>
