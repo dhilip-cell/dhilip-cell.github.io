@@ -2,129 +2,124 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>RK Ecran Chatbot</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
+  <title>SFX Assistant Widget</title>
   <style>
-    body { font-family: Arial, sans-serif; margin: 0; }
-
-    /* Floating Chat Button */
-    #chat-toggle {
-      position: fixed; bottom: 20px; right: 20px;
-      background: #33B04A; border-radius: 50%;
+    body { margin:0; font-family: Arial, sans-serif; }
+    /* Floating button */
+    #chatToggle {
+      position: fixed;
+      bottom: 20px; right: 20px;
       width: 60px; height: 60px;
-      display: flex; align-items: center; justify-content: center;
-      color: white; font-size: 28px; cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      z-index: 1000;
+      border-radius: 50%; border: none;
+      background: #33B04A; color: #fff;
+      font-size: 24px; cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,.25);
+      z-index: 9999;
     }
-
-    /* Chat Widget */
-    #chat-widget {
-      position: fixed; bottom: 90px; right: 20px;
-      width: 320px; height: 420px;
+    /* Chat box */
+    #chatWidget {
+      position: fixed;
+      bottom: 90px; right: 20px;
+      width: 320px; max-height: 480px;
       background: #fff; border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      display: none; flex-direction: column; overflow: hidden;
-      z-index: 1000;
+      box-shadow: 0 6px 20px rgba(0,0,0,.25);
+      display: none; flex-direction: column;
+      overflow: hidden; z-index: 9999;
     }
-
-    #chat-header {
-      background: #0D333F; color: white;
+    #chatHeader {
+      background: #0D333F; color: #fff;
       padding: 12px; font-weight: bold;
-      display: flex; justify-content: space-between; align-items: center;
     }
-    #chat-messages { flex: 1; padding: 10px; overflow-y: auto; }
-
-    .msg { margin: 6px 0; padding: 8px 12px; border-radius: 15px; max-width: 80%; }
-    .user { background: #33B04A; color: #fff; margin-left: auto; }
-    .bot { background: #e9e9e9; color: #000; margin-right: auto; }
-
-    #chat-input-area { display: flex; border-top: 1px solid #ccc; }
-    #chat-input { flex: 1; border: none; padding: 10px; }
-    #chat-send { background: #33B04A; color: #fff; border: none; padding: 10px 15px; cursor: pointer; }
-
-    .quick-reply {
-      margin: 8px; padding: 8px 12px;
-      background: #f1f1f1; border-radius: 15px;
-      cursor: pointer; border: 1px solid #ccc;
-      display: inline-block;
+    #chatMessages {
+      flex: 1; padding: 10px; overflow-y: auto;
+      font-size: 14px;
+    }
+    .msg { margin: 6px 0; padding: 8px 10px; border-radius: 8px; max-width: 80%; }
+    .user { background: #33B04A; color:#fff; margin-left:auto; }
+    .bot  { background: #eee; color:#000; margin-right:auto; }
+    .sys  { background:#fff6e5; border:1px dashed #f2cf73; color:#6b4e00; margin:4px auto; }
+    #chatInputArea {
+      display: flex; border-top: 1px solid #ddd;
+    }
+    #chatInput {
+      flex: 1; border: none; padding: 10px;
+      font-size: 14px;
+    }
+    #chatSend {
+      background:#33B04A; color:#fff;
+      border:none; padding:0 16px; cursor:pointer;
     }
   </style>
 </head>
 <body>
 
-<!-- Floating button -->
-<div id="chat-toggle">💬</div>
+<button id="chatToggle">💬</button>
 
-<!-- Chat Widget -->
-<div id="chat-widget">
-  <div id="chat-header">
-    RK Ecran Chatbot
-    <span id="chat-close" style="cursor:pointer;">✖</span>
-  </div>
-  <div id="chat-messages"></div>
-
-  <!-- Quick Reply -->
-  <div id="quick-replies">
-    <span class="quick-reply" onclick="sendQuickReply('Get Free Quote')">Get Free Quote</span>
-  </div>
-
-  <!-- Input -->
-  <div id="chat-input-area">
-    <input id="chat-input" type="text" placeholder="Type your message...">
-    <button id="chat-send">Send</button>
+<div id="chatWidget">
+  <div id="chatHeader">SFX Assistant</div>
+  <div id="chatMessages"></div>
+  <div id="chatInputArea">
+    <input id="chatInput" type="text" placeholder="Type a message..." onkeydown="if(event.key==='Enter') sendMessage()">
+    <button id="chatSend" onclick="sendMessage()">Send</button>
   </div>
 </div>
 
 <script>
-  const webhookUrl = "https://automations-salesflowx.app.n8n.cloud/webhook-test/d83ee857-5b2a-4416-aa9e-1bc90586d36a"; // 🔗 change to your active n8n webhook
+  // -------- CONFIG ----------
+  const CONFIG = {
+    WEBHOOK_URL: "https://automations-salesflowx.app.n8n.cloud/webhook-test/sfxagent",
+    SESSION_ID: "sfx-static-session-id"
+  };
 
-  const chatToggle = document.getElementById("chat-toggle");
-  const chatWidget = document.getElementById("chat-widget");
-  const chatClose = document.getElementById("chat-close");
-  const chatMessages = document.getElementById("chat-messages");
-  const chatInput = document.getElementById("chat-input");
-  const chatSend = document.getElementById("chat-send");
+  const toggleBtn = document.getElementById("chatToggle");
+  const widget = document.getElementById("chatWidget");
 
-  chatToggle.onclick = () => chatWidget.style.display = "flex";
-  chatClose.onclick = () => chatWidget.style.display = "none";
+  toggleBtn.onclick = () => {
+    widget.style.display = widget.style.display === "flex" ? "none" : "flex";
+    widget.style.flexDirection = "column";
+  };
 
-  function appendMessage(text, sender) {
-    let msg = document.createElement("div");
+  function addMsg(text, sender){
+    const msg = document.createElement("div");
     msg.className = "msg " + sender;
-    msg.innerText = text;
-    chatMessages.appendChild(msg);
-    chatMessages.scrollTop = chatMessages.scrollHeight;
+    msg.textContent = text;
+    document.getElementById("chatMessages").appendChild(msg);
+    msg.scrollIntoView({behavior:"smooth"});
   }
 
-  async function sendMessage(message) {
-    appendMessage(message, "user");
-    chatInput.value = "";
+  async function sendMessage(){
+    const input = document.getElementById("chatInput");
+    const text = input.value.trim();
+    if(!text) return;
+    addMsg(text,"user");
+    input.value = "";
 
     try {
-      let res = await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message })
+      const payload = { chat_input: text, session_id: CONFIG.SESSION_ID };
+      const res = await fetch(CONFIG.WEBHOOK_URL,{
+        method:"POST",
+        headers:{ "Content-Type":"application/json" },
+        body: JSON.stringify(payload)
       });
-      let data = await res.json();
-      if (data.reply) appendMessage(data.reply, "bot");
-    } catch(e) {
-      // ❌ Do nothing if error (no "Error contacting server")
+
+      let reply = "⚠️ No response from server";
+      if(res.ok){
+        try {
+          const data = await res.json();
+          reply = data?.[0]?.output || data?.output || JSON.stringify(data);
+        } catch(e){}
+      } else {
+        reply = `⚠️ Server ${res.status} ${res.statusText}`;
+      }
+      addMsg(reply,"bot");
+    } catch(e){
+      addMsg("⚠️ Error contacting server","sys");
     }
   }
 
-  chatSend.onclick = () => {
-    if (chatInput.value.trim()) sendMessage(chatInput.value.trim());
-  };
-  chatInput.addEventListener("keypress", e => {
-    if (e.key === "Enter" && chatInput.value.trim()) sendMessage(chatInput.value.trim());
-  });
-
-  function sendQuickReply(text) {
-    sendMessage(text);
-  }
+  // Greeting
+  window.onload = () => addMsg("Hello 👋 I'm your SalesflowX Assistant!","bot");
 </script>
+
 </body>
 </html>
