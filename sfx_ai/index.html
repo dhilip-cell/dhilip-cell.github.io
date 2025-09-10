@@ -1,125 +1,215 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>SFX Assistant Widget</title>
+  <meta charset="UTF-8" />
+  <title>Get Free Quote – Arasfirma Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
   <style>
-    body { margin:0; font-family: Arial, sans-serif; }
-    /* Floating button */
-    #chatToggle {
-      position: fixed;
-      bottom: 20px; right: 20px;
-      width: 60px; height: 60px;
-      border-radius: 50%; border: none;
-      background: #33B04A; color: #fff;
-      font-size: 24px; cursor: pointer;
-      box-shadow: 0 4px 10px rgba(0,0,0,.25);
-      z-index: 9999;
+    :root {
+      --bg: #0D333F;
+      --panel: #ffffff;
+      --accent: #33B04A;
     }
-    /* Chat box */
-    #chatWidget {
-      position: fixed;
-      bottom: 90px; right: 20px;
-      width: 320px; max-height: 480px;
-      background: #fff; border-radius: 12px;
-      box-shadow: 0 6px 20px rgba(0,0,0,.25);
-      display: none; flex-direction: column;
-      overflow: hidden; z-index: 9999;
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      min-height: 100vh;
     }
-    #chatHeader {
-      background: #0D333F; color: #fff;
-      padding: 12px; font-weight: bold;
+
+    #mainContent {
+      max-width: 480px;
+      margin: auto;
     }
-    #chatMessages {
-      flex: 1; padding: 10px; overflow-y: auto;
-      font-size: 14px;
+
+    #header {
+      background: var(--bg);
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 20px;
     }
-    .msg { margin: 6px 0; padding: 8px 10px; border-radius: 8px; max-width: 80%; }
-    .user { background: #33B04A; color:#fff; margin-left:auto; }
-    .bot  { background: #eee; color:#000; margin-right:auto; }
-    .sys  { background:#fff6e5; border:1px dashed #f2cf73; color:#6b4e00; margin:4px auto; }
-    #chatInputArea {
-      display: flex; border-top: 1px solid #ddd;
+
+    #header h1 {
+      font-size: 24px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0;
     }
-    #chatInput {
-      flex: 1; border: none; padding: 10px;
-      font-size: 14px;
+
+    #chat {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      display: flex;
+      flex-direction: column;
+      min-height: 400px;
+      position: relative;
     }
-    #chatSend {
-      background:#33B04A; color:#fff;
-      border:none; padding:0 16px; cursor:pointer;
+
+    #messages {
+      flex: 1;
+      overflow: auto;
+      padding-right: 6px;
+    }
+
+    .msg {
+      padding: 10px 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      max-width: 85%;
+      word-wrap: break-word;
+      line-height: 1.4;
+      white-space: pre-wrap;
+    }
+
+    .user {
+      background: var(--accent);
+      text-align: right;
+      margin-left: auto;
+      color: #fff;
+    }
+
+    .bot {
+      background: #dcd9e6;
+      text-align: left;
+      margin-right: auto;
+      color: #000;
+    }
+
+    .typing {
+      font-style: italic;
+      color: gray;
+      display: none;
+      margin-top: 5px;
+    }
+
+    #inputArea {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    #input {
+      flex: 1 1 200px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+      font-family: inherit;
+    }
+
+    button {
+      padding: 10px 16px;
+      border: none;
+      background: var(--accent);
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    button[disabled] {
+      opacity: 0.65;
+      cursor: not-allowed;
     }
   </style>
 </head>
 <body>
 
-<button id="chatToggle">💬</button>
+  <div id="mainContent">
+    <div id="header">
+      <h1>Arasfirma Assistant</h1>
+    </div>
 
-<div id="chatWidget">
-  <div id="chatHeader">SFX Assistant</div>
-  <div id="chatMessages"></div>
-  <div id="chatInputArea">
-    <input id="chatInput" type="text" placeholder="Type a message..." onkeydown="if(event.key==='Enter') sendMessage()">
-    <button id="chatSend" onclick="sendMessage()">Send</button>
+    <div id="chat">
+      <div id="messages"></div>
+      <div id="typingIndicator" class="typing">Assistant is typing...</div>
+      <div id="inputArea">
+        <input id="input" type="text" placeholder="Ask anything..." onkeydown="handleKey(event)" />
+        <button id="sendBtn" onclick="sendMessage()">Get Free Quote</button>
+      </div>
+    </div>
   </div>
-</div>
 
-<script>
-  // -------- CONFIG ----------
-  const CONFIG = {
-    WEBHOOK_URL: "https://automations-salesflowx.app.n8n.cloud/webhook-test/sfxagent",
-    SESSION_ID: "sfx-static-session-id"
-  };
+  <script>
+    const CONFIG = {
+      WEBHOOK_URL: "https://automations-salesflowx.app.n8n.cloud/webhook-test/salesflowxclientsheet",
+      SESSION_ID: "sfx-static-session-id"
+    };
 
-  const toggleBtn = document.getElementById("chatToggle");
-  const widget = document.getElementById("chatWidget");
-
-  toggleBtn.onclick = () => {
-    widget.style.display = widget.style.display === "flex" ? "none" : "flex";
-    widget.style.flexDirection = "column";
-  };
-
-  function addMsg(text, sender){
-    const msg = document.createElement("div");
-    msg.className = "msg " + sender;
-    msg.textContent = text;
-    document.getElementById("chatMessages").appendChild(msg);
-    msg.scrollIntoView({behavior:"smooth"});
-  }
-
-  async function sendMessage(){
-    const input = document.getElementById("chatInput");
-    const text = input.value.trim();
-    if(!text) return;
-    addMsg(text,"user");
-    input.value = "";
-
-    try {
-      const payload = { chat_input: text, session_id: CONFIG.SESSION_ID };
-      const res = await fetch(CONFIG.WEBHOOK_URL,{
-        method:"POST",
-        headers:{ "Content-Type":"application/json" },
-        body: JSON.stringify(payload)
-      });
-
-      let reply = "⚠️ No response from server";
-      if(res.ok){
-        try {
-          const data = await res.json();
-          reply = data?.[0]?.output || data?.output || JSON.stringify(data);
-        } catch(e){}
-      } else {
-        reply = `⚠️ Server ${res.status} ${res.statusText}`;
-      }
-      addMsg(reply,"bot");
-    } catch(e){
-      addMsg("⚠️ Error contacting server","sys");
+    function handleKey(e) {
+      if (e.key === "Enter") sendMessage();
     }
-  }
 
-  // Greeting
-  window.onload = () => addMsg("Hello 👋 I'm your SalesflowX Assistant!","bot");
-</script>
+    async function sendMessage() {
+      const inputEl = document.getElementById("input");
+      const text = inputEl.value.trim();
+      if (!text) return;
 
+      addMsg(text, "user");
+      inputEl.value = "";
+      setTyping(true);
+      setSendDisabled(true);
+
+      try {
+        const payload = { chat_input: text, session_id: CONFIG.SESSION_ID };
+        const res = await fetch(CONFIG.WEBHOOK_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        let reply = "No response from bot";
+        if (res.ok) {
+          const data = await res.json();
+          reply = data?.[0]?.output || data?.output || "Response received.";
+        } else {
+          reply = `⚠️ Server responded with ${res.status} ${res.statusText}`;
+        }
+        addMsg(reply, "bot");
+      } catch (err) {
+        addMsg("⚠️ Error contacting server. Check network or webhook URL.", "bot");
+      } finally {
+        setTyping(false);
+        setSendDisabled(false);
+        scrollMessagesToEnd();
+      }
+    }
+
+    function addMsg(text, sender) {
+      const div = document.createElement("div");
+      div.className = "msg " + sender;
+      div.textContent = text;
+      document.getElementById("messages").appendChild(div);
+      div.scrollIntoView({ behavior: "smooth" });
+    }
+
+    function setTyping(isTyping) {
+      document.getElementById("typingIndicator").style.display = isTyping ? "block" : "none";
+    }
+
+    function setSendDisabled(disabled) {
+      const btn = document.getElementById("sendBtn");
+      btn.disabled = disabled;
+      btn.textContent = disabled ? "Sending..." : "Get Free Quote";
+    }
+
+    function scrollMessagesToEnd() {
+      const m = document.getElementById("messages");
+      m.scrollTop = m.scrollHeight;
+    }
+
+    window.onload = () => {
+      addMsg("👋 Hello! I'm your Arasfirma assistant. How can I help you today?", "bot");
+    };
+  </script>
 </body>
 </html>
