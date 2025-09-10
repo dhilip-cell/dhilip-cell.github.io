@@ -2,47 +2,60 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>RK Ecran Chatbot</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
   <style>
     body { font-family: Arial, sans-serif; margin: 0; }
+
+    /* Floating Chat Button */
     #chat-toggle {
       position: fixed; bottom: 20px; right: 20px;
-      background: #4CAF50; border-radius: 50%;
-      width: 60px; height: 60px; cursor: pointer;
+      background: #33B04A; border-radius: 50%;
+      width: 60px; height: 60px;
       display: flex; align-items: center; justify-content: center;
+      color: white; font-size: 28px; cursor: pointer;
       box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+      z-index: 1000;
     }
+
+    /* Chat Widget */
     #chat-widget {
       position: fixed; bottom: 90px; right: 20px;
-      width: 320px; height: 420px; background: #fff;
-      border-radius: 10px; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+      width: 320px; height: 420px;
+      background: #fff; border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
       display: none; flex-direction: column; overflow: hidden;
+      z-index: 1000;
     }
+
     #chat-header {
-      background: #d32f2f; color: white; padding: 10px;
-      font-weight: bold; display: flex; justify-content: space-between; align-items: center;
+      background: #0D333F; color: white;
+      padding: 12px; font-weight: bold;
+      display: flex; justify-content: space-between; align-items: center;
     }
     #chat-messages { flex: 1; padding: 10px; overflow-y: auto; }
-    .message { margin: 5px 0; padding: 8px 12px; border-radius: 15px; max-width: 80%; }
-    .user { background: #4CAF50; color: white; align-self: flex-end; }
-    .bot { background: #f1f1f1; align-self: flex-start; }
+
+    .msg { margin: 6px 0; padding: 8px 12px; border-radius: 15px; max-width: 80%; }
+    .user { background: #33B04A; color: #fff; margin-left: auto; }
+    .bot { background: #e9e9e9; color: #000; margin-right: auto; }
+
     #chat-input-area { display: flex; border-top: 1px solid #ccc; }
     #chat-input { flex: 1; border: none; padding: 10px; }
-    #chat-send { background: #4CAF50; color: white; border: none; padding: 10px 15px; cursor: pointer; }
+    #chat-send { background: #33B04A; color: #fff; border: none; padding: 10px 15px; cursor: pointer; }
+
     .quick-reply {
-      margin: 10px 5px; padding: 8px 12px;
-      background: #eee; border-radius: 15px; display: inline-block;
+      margin: 8px; padding: 8px 12px;
+      background: #f1f1f1; border-radius: 15px;
       cursor: pointer; border: 1px solid #ccc;
+      display: inline-block;
     }
   </style>
 </head>
 <body>
 
-<!-- Floating Chat Button -->
-<div id="chat-toggle">
-  💬
-</div>
+<!-- Floating button -->
+<div id="chat-toggle">💬</div>
 
 <!-- Chat Widget -->
 <div id="chat-widget">
@@ -51,9 +64,13 @@
     <span id="chat-close" style="cursor:pointer;">✖</span>
   </div>
   <div id="chat-messages"></div>
+
+  <!-- Quick Reply -->
   <div id="quick-replies">
     <span class="quick-reply" onclick="sendQuickReply('Get Free Quote')">Get Free Quote</span>
   </div>
+
+  <!-- Input -->
   <div id="chat-input-area">
     <input id="chat-input" type="text" placeholder="Type your message...">
     <button id="chat-send">Send</button>
@@ -61,7 +78,7 @@
 </div>
 
 <script>
-  const webhookUrl = "https://automations-salesflowx.app.n8n.cloud/webhook-test/d83ee857-5b2a-4416-aa9e-1bc90586d36a";
+  const webhookUrl = "https://automations-salesflowx.app.n8n.cloud/webhook-test/d83ee857-5b2a-4416-aa9e-1bc90586d36a"; // 🔗 change to your active n8n webhook
 
   const chatToggle = document.getElementById("chat-toggle");
   const chatWidget = document.getElementById("chat-widget");
@@ -75,7 +92,7 @@
 
   function appendMessage(text, sender) {
     let msg = document.createElement("div");
-    msg.className = "message " + sender;
+    msg.className = "msg " + sender;
     msg.innerText = text;
     chatMessages.appendChild(msg);
     chatMessages.scrollTop = chatMessages.scrollHeight;
@@ -89,32 +106,25 @@
       let res = await fetch(webhookUrl, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: message })
+        body: JSON.stringify({ message })
       });
-
       let data = await res.json();
       if (data.reply) appendMessage(data.reply, "bot");
-    } catch (e) {
-      // Silent fail, no "Error contacting server"
+    } catch(e) {
+      // ❌ Do nothing if error (no "Error contacting server")
     }
   }
 
   chatSend.onclick = () => {
-    if (chatInput.value.trim()) {
-      sendMessage(chatInput.value.trim());
-    }
+    if (chatInput.value.trim()) sendMessage(chatInput.value.trim());
   };
-
-  chatInput.addEventListener("keypress", function(e) {
-    if (e.key === "Enter" && chatInput.value.trim()) {
-      sendMessage(chatInput.value.trim());
-    }
+  chatInput.addEventListener("keypress", e => {
+    if (e.key === "Enter" && chatInput.value.trim()) sendMessage(chatInput.value.trim());
   });
 
   function sendQuickReply(text) {
     sendMessage(text);
   }
 </script>
-
 </body>
 </html>
