@@ -6,140 +6,30 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
   <style>
-    :root { --bg:#0D333F; --panel:#ffffff; --accent:#33B04A; }
-    body {
-      font-family:'Poppins',sans-serif; background:var(--bg); margin:0; padding:20px;
-      display:flex; flex-direction:column; justify-content:center; min-height:100vh;
-    }
-    #mainContent { max-width:480px; margin:auto; }
-    #header { background:var(--bg); padding:20px; border-radius:12px; text-align:center; margin-bottom:20px; }
-    #header h1 { font-size:24px; font-weight:700; color:#fff; margin:0; }
-    #chat {
-      background:#fff; padding:20px; border-radius:12px; box-shadow:0 4px 8px rgba(0,0,0,.1);
-      display:flex; flex-direction:column; min-height:400px; position:relative;
-    }
-    #messages { flex:1; overflow:auto; padding-right:6px; }
-    .msg { padding:10px 15px; margin:10px 0; border-radius:10px; max-width:85%; word-wrap:break-word; line-height:1.4; white-space:pre-wrap; }
-    .user { background:var(--accent); text-align:right; margin-left:auto; color:#fff; }
-    .bot { background:#dcd9e6; text-align:left; margin-right:auto; color:#000; }
-    .typing { font-style:italic; color:gray; display:none; margin-top:5px; }
-    #inputArea { display:flex; gap:10px; margin-top:15px; flex-wrap:wrap; }
-    #input { flex:1 1 200px; padding:10px; border:1px solid #ccc; border-radius:6px; font-family:inherit; }
-    button { padding:10px 16px; border:none; background:var(--accent); color:#fff; border-radius:6px; cursor:pointer; font-weight:600; }
-    button[disabled]{ opacity:.65; cursor:not-allowed; }
-    .quick-btn{ display:inline-block; margin-top:8px; background:var(--accent); color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:13px; font-weight:600; }
+    /* your existing styles */
   </style>
 </head>
 <body>
+
+  <!-- 👇 Looker Studio Dashboard at the very top -->
+  <div style="margin-bottom:30px; text-align:center;">
+    <iframe width="100%" height="500"
+            src="https://lookerstudio.google.com/embed/reporting/970f4687-42a3-4a8e-a314-a29c5272bb3d/page/JaJmD"
+            frameborder="0" style="border:0;"
+            allowfullscreen
+            sandbox="allow-storage-access-by-user-activation allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox">
+    </iframe>
+  </div>
+  <!-- 👆 End of Looker Studio embed -->
+
   <div id="mainContent">
     <div id="header"><h1>RK Ecran Assistant</h1></div>
 
     <div id="chat">
-      <div id="messages"></div>
-      <div id="typingIndicator" class="typing">Assistant is typing...</div>
-      <div id="inputArea">
-        <input id="input" type="text" placeholder="Ask anything..." autocomplete="off" />
-        <button id="sendBtn">Send</button>
-      </div>
+      <!-- your chat code -->
     </div>
   </div>
 
-  <script>
-    const CONFIG = {
-      WEBHOOK_URL: "https://automations-salesflowx.app.n8n.cloud/webhook/sfxagent",
-      SESSION_KEY: "rk_ecran_session_id"
-    };
-
-    const messagesEl = document.getElementById("messages");
-    const inputEl = document.getElementById("input");
-    const sendBtn = document.getElementById("sendBtn");
-    const typingEl = document.getElementById("typingIndicator");
-
-    function getSessionId(){
-      let id = localStorage.getItem(CONFIG.SESSION_KEY);
-      if(!id){
-        id = "sess-" + Date.now() + "-" + Math.random().toString(36).slice(2);
-        localStorage.setItem(CONFIG.SESSION_KEY, id);
-      }
-      return id;
-    }
-
-    function handleEnter(e){
-      if (e.key === "Enter") {
-        e.preventDefault();
-        sendMessage();
-      }
-    }
-
-    async function sendMessage(prefilledText){
-      const text = (prefilledText || inputEl.value || "").trim();
-      if (!text) return;
-
-      addMsg(text, "user");
-      inputEl.value = "";
-      setTyping(true); setSendDisabled(true);
-
-      try {
-        const payload = { chat_input: text, session_id: getSessionId() };
-        const res = await fetch(CONFIG.WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
-        });
-
-        let reply = "⚠️ No response from bot";
-        if (res.ok) {
-          const ct = (res.headers.get("content-type") || "").toLowerCase();
-          if (ct.includes("application/json")) {
-            const data = await res.json();
-            reply = data?.[0]?.output || data?.output || JSON.stringify(data, null, 2);
-          } else {
-            reply = await res.text();
-          }
-        } else {
-          reply = `⚠️ Server responded with ${res.status} ${res.statusText}`;
-        }
-        addMsg(reply, "bot");
-      } catch (err) {
-        addMsg("⚠️ Error contacting server. Check network or webhook URL.", "bot");
-      } finally {
-        setTyping(false); setSendDisabled(false); scrollToEnd();
-      }
-    }
-
-    function addMsg(text, sender, withQuickBtn=false){
-      const div = document.createElement("div");
-      div.className = "msg " + sender;
-      div.textContent = text;
-
-      if (withQuickBtn){
-        const quickBtn = document.createElement("div");
-        quickBtn.className = "quick-btn";
-        quickBtn.textContent = "Get Free Quote";
-        quickBtn.onclick = () => sendMessage("I want a free quote");
-        div.appendChild(document.createElement("br"));
-        div.appendChild(quickBtn);
-      }
-
-      messagesEl.appendChild(div);
-      div.scrollIntoView({ behavior: "smooth" });
-    }
-
-    function setTyping(b){ typingEl.style.display = b ? "block" : "none"; }
-    function setSendDisabled(b){ sendBtn.disabled = b; sendBtn.textContent = b ? "Sending..." : "Send"; }
-    function scrollToEnd(){ messagesEl.scrollTop = messagesEl.scrollHeight; }
-
-    inputEl.addEventListener("keydown", handleEnter);
-    sendBtn.addEventListener("click", () => sendMessage());
-
-    window.onload = () => {
-      addMsg("👋 Hello! I'm your RK Ecran assistant. How can I help you today?", "bot", true);
-    };
-  </script>
-
-  <!-- Widget: include once, ideally at the end of body -->
- <script>
-(function(){if(!window.chatbase||window.chatbase("getState")!=="initialized"){window.chatbase=(...arguments)=>{if(!window.chatbase.q){window.chatbase.q=[]}window.chatbase.q.push(arguments)};window.chatbase=new Proxy(window.chatbase,{get(target,prop){if(prop==="q"){return target.q}return(...args)=>target(prop,...args)}})}const onLoad=function(){const script=document.createElement("script");script.src="https://www.chatbase.co/embed.min.js";script.id="AjsG02lcBVvlZddUBI2tl";script.domain="www.chatbase.co";document.body.appendChild(script)};if(document.readyState==="complete"){onLoad()}else{window.addEventListener("load",onLoad)}})();
-</script>
+  <!-- your existing scripts -->
 </body>
 </html>
