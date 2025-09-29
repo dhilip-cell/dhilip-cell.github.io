@@ -197,7 +197,7 @@
       document.getElementById("typingIndicator").style.display = "block";
 
       try {
-        const res = await fetch("https://prasanna-test.app.n8n.cloud/webhook-test/salesflowx", {
+        const res = await fetch("https://prasanna-test.app.n8n.cloud/webhook/salesflowx", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ chat_input: text, session_id: "static-session-id" })
