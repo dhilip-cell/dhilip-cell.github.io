@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Salesflow X – CRM Assistant</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;700&display=swap" rel="stylesheet" />
+  <style>
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: #0D333F;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    @media (min-width: 768px) {
+      body {
+        flex-direction: row;
+      }
+
+      #sidebar {
+        order: 0;
+        max-width: 250px;
+        margin-right: 20px;
+      }
+
+      #mainContent {
+        order: 1;
+        flex: 1;
+      }
+
+      .accordion {
+        display: none;
+      }
+
+      #sidebarContent {
+        display: block !important;
+      }
+    }
+
+    #sidebar {
+      width: 100%;
+      background: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      padding: 15px;
+      margin-top: 20px;
+    }
+
+    #mainContent {
+      max-width: 100%;
+    }
+
+    #header {
+      background: #0D333F;
+      padding: 20px;
+      border-radius: 12px;
+      text-align: center;
+      margin-bottom: 20px;
+    }
+
+    #header img {
+      height: 60px;
+      margin-bottom: 10px;
+    }
+
+    #header h1 {
+      font-size: 26px;
+      font-weight: 700;
+      color: #ffffff;
+      margin: 0;
+    }
+
+    #intro {
+      color: #f1f1f1;
+      font-size: 15px;
+      background: #163c44;
+      padding: 15px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+    }
+
+    #chat {
+      background: #fff;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .msg {
+      padding: 10px 15px;
+      margin: 10px 0;
+      border-radius: 10px;
+      max-width: 80%;
+      word-wrap: break-word;
+    }
+
+    .user {
+      background: #33B04A;
+      text-align: right;
+      margin-left: auto;
+      color: #fff;
+    }
+
+    .bot {
+      background: #dcd9e6;
+      text-align: left;
+      margin-right: auto;
+      color: #000;
+    }
+
+    .typing {
+      font-style: italic;
+      color: gray;
+    }
+
+    #inputArea {
+      display: flex;
+      gap: 10px;
+      margin-top: 15px;
+      flex-wrap: wrap;
+    }
+
+    #input {
+      flex: 1 1 200px;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 6px;
+    }
+
+    button {
+      padding: 10px 20px;
+      border: none;
+      background: #33B04A;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      font-weight: 600;
+    }
+
+    iframe {
+      width: 100%;
+      height: 200px;
+      border-radius: 10px;
+      margin-top: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+  </style>
+</head>
+<body>
+
+  <div id="mainContent">
+    <div id="header">
+      <img src="https://www.salesflowx.com/assets/img/sfx-logo.svg" alt="Salesflow X Logo" />
+      <h1>CRM Assistant</h1>
+    </div>
+
+    <div id="intro">
+      <p><strong>Welcome to Salesflow X!</strong><br>
+      I am the Salesflow X Employee Performance Analyser Assistant.</p>
+    </div>
+
+    <div id="chat">
+      <div id="messages"></div>
+      <div id="typingIndicator" class="typing" style="display:none;">Bot is typing...</div>
+      <div id="inputArea">
+        <input id="input" type="text" placeholder="Ask anything..." onkeydown="handleKey(event)" />
+        <button id="sendBtn" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function handleKey(e) {
+      if (e.key === "Enter") sendMessage();
+    }
+
+    async function sendMessage() {
+      const text = document.getElementById("input").value.trim();
+      if (!text) return;
+      addMsg(text, "user");
+      document.getElementById("input").value = "";
+      document.getElementById("typingIndicator").style.display = "block";
+
+      try {
+        const res = await fetch("https://automations-salesflowx.app.n8n.cloud/webhook/salesflowxclientsheet", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_input: text, session_id: "static-session-id" })
+        });
+        const response = await res.json();
+        const reply = response?.[0]?.output || response?.output || "No response from bot";
+        addMsg(reply, "bot");
+      } catch {
+        addMsg("⚠️ Error contacting server", "bot");
+      }
+
+      document.getElementById("typingIndicator").style.display = "none";
+    }
+
+    function addMsg(text, sender) {
+      const div = document.createElement("div");
+      div.className = "msg " + sender;
+      div.innerText = text;
+      document.getElementById("messages").appendChild(div);
+      div.scrollIntoView({ behavior: "smooth" });
+    }
+
+    window.onload = () => {
+      addMsg("Hello! I'm your Salesflow X assistant. Ask me anything related to SFX Employee Performance.", "bot");
+    };
+  </script>
+
+  <!-- 🔹 Chat Widget Script -->
+  <script async defer src="https://live.thesyndicatespace.com/js/widget/fccrgdrbpec4kcaq/float.js"></script>
+
+</body>
+</html>
