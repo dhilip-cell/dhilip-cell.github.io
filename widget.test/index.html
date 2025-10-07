@@ -148,6 +148,8 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
   </style>
+  <!-- 🔹 Chat Widget Script -->
+  <script async defer src="https://live.thesyndicatespace.com/js/widget/fccrgdrbpec4kcaq/float.js"></script>
 </head>
 <body>
 
@@ -159,7 +161,7 @@
 
     <div id="intro">
       <p><strong>Welcome to Salesflow X!</strong><br>
-      I’m the Salesflow X Employee Performance Assistant.</p>
+      I am the Salesflow X Employee Performance Analyser Assistant.</p>
     </div>
 
     <div id="chat">
@@ -212,52 +214,5 @@
       addMsg("Hello! I'm your Salesflow X assistant. Ask me anything related to SFX Employee Performance.", "bot");
     };
   </script>
-
-  <!-- ✅ SFX Chatbot Widget Script -->
-  <script>
-    window.chatbotSettings = {
-      "chat_bubble_custom_icon": 1,
-      "chat_bubble_icon_url": "https://chatbot.ewr1.vultrobjects.com/team/202510/179637/arasfirma-creatives-2-adH2.png",
-      "chat_bubble_style": "standard",
-      "chat_bubble_text": "Talk to me Now!",
-      "chat_bubble_icon": "https://chatbot.ewr1.vultrobjects.com/team/202510/179637/arasfirma-creatives-2-adH2.png",
-      "locale": "en",
-      "sound": "100.mp3",
-      "theme": "standard",
-      "custom_font": "Default",
-      "icon_color": "#FFFFFF",
-      "header_bg_color": "#FFFFFF",
-      "body_bg_color": "#F4F6FB",
-      "user_msg_text_color": "#FFFFFF",
-      "start_chat_button_radius_style": "round",
-      "start_chat_button_radius": 8,
-      "style": "float",
-      "position": "right",
-      "left_spacing": 29,
-      "right_spacing": 15,
-      "bottom_spacing": 26,
-      "max_popup_width": "100%",
-      "max_chat_width": "900px",
-      "embed_div_height": 500,
-      "div_id": "",
-      "ref": ""
-    };
-
-    (function(d,s,id){
-      var js,fjs=d.getElementsByTagName(s)[0];
-      if (d.getElementById(id)) return;
-      js=d.createElement(s);
-      js.id=id;
-      js.src='https://sdk.dfktv2.com/js/sdk.js?v=eb12a019b362b1d3a43b77e6fc6b3df1';
-      fjs.parentNode.insertBefore(js,fjs);
-      js.onload=function(){
-        window.chatbotSDK.init({
-          "baseUrl":"https://sdk.dfktv2.com",
-          "flowToken":"fccrgdrbpec4kcaq"
-        });
-      }
-    }(document, 'script', 'chatbotWidgetV1'));
-  </script>
-
 </body>
 </html>
