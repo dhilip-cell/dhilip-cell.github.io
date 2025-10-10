@@ -84,68 +84,17 @@
 
     #chat {
       background: #fff;
-      padding: 20px;
+      padding: 0;
       border-radius: 12px;
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-
-    .msg {
-      padding: 10px 15px;
-      margin: 10px 0;
-      border-radius: 10px;
-      max-width: 80%;
-      word-wrap: break-word;
-    }
-
-    .user {
-      background: #33B04A;
-      text-align: right;
-      margin-left: auto;
-      color: #fff;
-    }
-
-    .bot {
-      background: #dcd9e6;
-      text-align: left;
-      margin-right: auto;
-      color: #000;
-    }
-
-    .typing {
-      font-style: italic;
-      color: gray;
-    }
-
-    #inputArea {
-      display: flex;
-      gap: 10px;
-      margin-top: 15px;
-      flex-wrap: wrap;
-    }
-
-    #input {
-      flex: 1 1 200px;
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-    }
-
-    button {
-      padding: 10px 20px;
-      border: none;
-      background: #33B04A;
-      color: white;
-      border-radius: 6px;
-      cursor: pointer;
-      font-weight: 600;
+      overflow: hidden;
     }
 
     iframe {
       width: 100%;
-      height: 200px;
-      border-radius: 10px;
-      margin-top: 20px;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+      height: 600px;
+      border: none;
+      border-radius: 12px;
     }
   </style>
 </head>
@@ -163,12 +112,10 @@
     </div>
 
     <div id="chat">
-      <div id="messages"></div>
-      <div id="typingIndicator" class="typing" style="display:none;">Bot is typing...</div>
-      <div id="inputArea">
-        <input id="input" type="text" placeholder="Ask anything..." onkeydown="handleKey(event)" />
-        <button id="sendBtn" onclick="sendMessage()">Send</button>
-      </div>
+      <iframe 
+        src="https://live.thesyndicatespace.com/settings/accounts/179637#/chat/f170691" 
+        allow="camera; microphone; autoplay"
+      ></iframe>
     </div>
   </div>
 
@@ -184,45 +131,5 @@
     </div>
   </div>
 
-  <script>
-    function handleKey(e) {
-      if (e.key === "Enter") sendMessage();
-    }
-
-    async function sendMessage() {
-      const text = document.getElementById("input").value.trim();
-      if (!text) return;
-      addMsg(text, "user");
-      document.getElementById("input").value = "";
-      document.getElementById("typingIndicator").style.display = "block";
-
-      try {
-        const res = await fetch("https://prasanna-test.app.n8n.cloud/webhook/salesflowx", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ chat_input: text, session_id: "static-session-id" })
-        });
-        const response = await res.json();
-        const reply = response?.[0]?.output || response?.output || "No response from bot";
-        addMsg(reply, "bot");
-      } catch {
-        addMsg("⚠️ Error contacting server", "bot");
-      }
-
-      document.getElementById("typingIndicator").style.display = "none";
-    }
-
-    function addMsg(text, sender) {
-      const div = document.createElement("div");
-      div.className = "msg " + sender;
-      div.innerText = text;
-      document.getElementById("messages").appendChild(div);
-      div.scrollIntoView({ behavior: "smooth" });
-    }
-
-    window.onload = () => {
-      addMsg("Hello! I'm your Salesflow X assistant. Ask me anything related to your campaigns, CRM, or lead performance.", "bot");
-    };
-  </script>
 </body>
 </html>
