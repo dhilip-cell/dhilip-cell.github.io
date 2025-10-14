@@ -3,13 +3,24 @@
 <head>
   <meta charset="UTF-8" />
   <title>Live Chat | The Syndicate Space</title>
+  <style>
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+    iframe {
+      width: 100%;
+      height: 100%;
+      border: none;
+    }
+  </style>
 </head>
 <body>
   <h2>Welcome to Our Live Chat</h2>
-
-  <script>
-    const chatUrl = `https://live.thesyndicatespace.com/settings/accounts/179639#/chat/f170689`;
-    document.write(`<iframe src="${chatUrl}" width="100%" height="600" frameborder="0" allow="microphone; camera"></iframe>`);
-  </script>
+  <iframe
+    src="https://live.thesyndicatespace.com/settings/accounts/179639#/chat/f170689"
+    allow="microphone *; camera *; autoplay *"
+    allowfullscreen>
+  </iframe>
 </body>
 </html>
