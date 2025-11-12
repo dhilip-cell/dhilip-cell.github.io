@@ -1,0 +1,147 @@
+:root {
+  color-scheme: light;
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+  background-color: #f5f7fb;
+  color: #1f2a44;
+}
+
+body,
+html {
+  margin: 0;
+  padding: 0;
+}
+
+.app-container {
+  max-width: 960px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem 3rem;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 2rem;
+}
+
+header h1 {
+  margin: 0;
+  font-size: 2.5rem;
+}
+
+header p {
+  margin-top: 0.5rem;
+  color: #42526e;
+}
+
+main {
+  display: grid;
+  gap: 1.5rem;
+}
+
+.upload-section,
+.chat-section {
+  background: white;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.1);
+}
+
+form {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  align-items: center;
+}
+
+label {
+  font-weight: 600;
+}
+
+input[type="file"] {
+  max-width: 260px;
+}
+
+button {
+  background: linear-gradient(135deg, #2563eb, #4f46e5);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.6rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px rgba(79, 70, 229, 0.25);
+}
+
+.status {
+  margin-top: 0.75rem;
+  font-size: 0.9rem;
+  color: #1d4ed8;
+}
+
+.chat-log {
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  padding: 1rem;
+  height: 340px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  background: #f8fafc;
+}
+
+.message {
+  padding: 0.75rem 1rem;
+  border-radius: 12px;
+  max-width: 80%;
+  line-height: 1.4;
+  white-space: pre-line;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08);
+}
+
+.message.bot {
+  align-self: flex-start;
+  background: #2563eb;
+  color: white;
+}
+
+.message.user {
+  align-self: flex-end;
+  background: #e2e8f0;
+  color: #1f2a44;
+}
+
+.message.bot.dataset {
+  background: #0f766e;
+  color: white;
+}
+
+#chat-form {
+  margin-top: 1rem;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 1rem;
+}
+
+#chat-form input[type="text"] {
+  flex: 1;
+  min-width: 200px;
+  border: 1px solid #cbd5f5;
+  border-radius: 999px;
+  padding: 0.65rem 1rem;
+  font-size: 1rem;
+}
+
+@media (min-width: 900px) {
+  main {
+    grid-template-columns: 1fr 1.5fr;
+  }
+
+  .chat-section {
+    grid-row: span 2;
+  }
+}

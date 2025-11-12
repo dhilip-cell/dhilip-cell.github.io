@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Analyst Copilot</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='css/styles.css') }}"
+    />
+  </head>
+  <body>
+    <div class="app-container">
+      <header>
+        <h1>Analyst Copilot</h1>
+        <p>
+          Ask questions about analytics tools or upload your dataset for quick
+          insights.
+        </p>
+      </header>
+
+      <main>
+        <section class="upload-section">
+          <form id="upload-form">
+            <label for="file-input">Upload CSV or Excel</label>
+            <input
+              type="file"
+              id="file-input"
+              name="file"
+              accept=".csv,.xlsx,.xls"
+            />
+            <button type="submit">Upload</button>
+          </form>
+          <div id="upload-status" class="status"></div>
+        </section>
+
+        <section class="chat-section">
+          <div id="chat-log" class="chat-log">
+            <div class="message bot">
+              Hello! I can help with Google Sheets, Excel, Power BI, Tableau,
+              SQL, SPSS, and dataset summaries. What do you need?
+            </div>
+          </div>
+          <form id="chat-form">
+            <input
+              type="text"
+              id="chat-input"
+              placeholder="Type your question..."
+              autocomplete="off"
+              required
+            />
+            <button type="submit">Send</button>
+          </form>
+        </section>
+      </main>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/chat.js') }}"></script>
+  </body>
+</html>

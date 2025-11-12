@@ -1,0 +1,73 @@
+[
+  {
+    "topic": "google_sheets",
+    "questions": [
+      "How do I use pivot tables in Google Sheets?",
+      "How can I share a Google Sheets report securely?",
+      "What are the shortcuts for data cleaning in Google Sheets?"
+    ],
+    "answer": "Use Data → Pivot table to build summaries, restrict sharing via File → Share roles, and apply Data Cleanup tools (Trim Whitespaces, Remove duplicates) for quick fixes."
+  },
+  {
+    "topic": "microsoft_excel",
+    "questions": [
+      "How do I create a pivot table in Excel?",
+      "How can I make charts in Excel?",
+      "What are common formulas for Excel analysts?"
+    ],
+    "answer": "Select Insert → PivotTable for pivot analysis, use Insert → Charts for visuals, and master formulas such as VLOOKUP/XLOOKUP, SUMIFS, COUNTIFS, TEXT functions, and dynamic arrays."
+  },
+  {
+    "topic": "power_bi",
+    "questions": [
+      "How do I publish a Power BI report?",
+      "How can I optimize DAX measures?",
+      "What data sources does Power BI support?"
+    ],
+    "answer": "Use Home → Publish to send reports to the Power BI Service, optimize DAX by using variables and minimizing row context transitions, and connect to sources including SQL Server, Excel, SharePoint, Azure, and REST APIs."
+  },
+  {
+    "topic": "tableau",
+    "questions": [
+      "How do I blend data in Tableau?",
+      "How can I create calculated fields in Tableau?",
+      "What is the difference between live and extract connections in Tableau?"
+    ],
+    "answer": "Blend data by linking sources with shared dimensions, create calculated fields via Analysis → Create Calculated Field, and use extracts for faster, cached performance while live connections stay synchronized with source updates."
+  },
+  {
+    "topic": "sql",
+    "questions": [
+      "How do I write a SQL join?",
+      "How can I optimize SQL queries?",
+      "What is the difference between WHERE and HAVING?"
+    ],
+    "answer": "Use INNER, LEFT, RIGHT, and FULL joins to combine tables, optimize with indexed filters and EXPLAIN plans, and filter aggregated results with HAVING while WHERE filters rows before aggregation."
+  },
+  {
+    "topic": "spss",
+    "questions": [
+      "How do I run descriptive statistics in SPSS?",
+      "How can I perform regression analysis in SPSS?",
+      "How do I export SPSS output?"
+    ],
+    "answer": "Run Analyze → Descriptive Statistics, access regression under Analyze → Regression, and export output via File → Export to formats such as PDF, Word, or Excel."
+  },
+  {
+    "topic": "data_cleaning",
+    "questions": [
+      "What steps should I follow to clean a dataset?",
+      "How do I handle missing values?",
+      "How do I detect outliers?"
+    ],
+    "answer": "Profile the dataset, standardize formats, handle missing values using imputation or removal, and detect outliers with statistical methods like Z-scores, IQR, or visualization approaches."
+  },
+  {
+    "topic": "data_visualization",
+    "questions": [
+      "How do I choose the right chart type?",
+      "What are best practices for dashboards?"
+    ],
+    "answer": "Match chart types to question (line for trends, bar for comparisons, scatter for relationships) and design dashboards with clear hierarchy, consistent colors, and concise annotations."
+  }
+]

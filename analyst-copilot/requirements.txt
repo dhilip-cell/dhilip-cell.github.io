@@ -1,0 +1,7 @@
+Flask==3.0.2
+Flask-Session==0.5.0
+pandas==2.2.3
+numpy==2.1.2
+scikit-learn==1.5.2
+openpyxl==3.1.5
+xlrd==2.0.1
