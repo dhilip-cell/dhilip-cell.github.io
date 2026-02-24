@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+    <title>RK Ecran Web AR Tool</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; font-family: sans-serif; }
+        #ui-container {
+            position: absolute; bottom: 20px; left: 50%; transform: translateX(-50%);
+            width: 90%; display: flex; flex-direction: column; align-items: center; z-index: 10;
+        }
+        #dimension-label {
+            background: rgba(0,0,0,0.7); color: white; padding: 8px 15px;
+            border-radius: 20px; margin-bottom: 10px; font-size: 14px;
+        }
+        .controls { display: flex; gap: 10px; overflow-x: auto; width: 100%; padding: 10px; }
+        button {
+            padding: 12px 20px; border-radius: 8px; border: none;
+            background: #cc0000; color: white; font-weight: bold; white-space: nowrap;
+        }
+        #ar-button {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            padding: 20px 40px; font-size: 20px; background: #222; cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <button id="ar-button">Start AR Session</button>
+
+    <div id="ui-container" style="display: none;">
+        <div id="dimension-label">Tap 4 corners of the door</div>
+        <div class="controls">
+            <button onclick="selectProduct(0)">Pleated Net</button>
+            <button onclick="selectProduct(1)">Roller Net</button>
+            <button onclick="selectProduct(2)">Magnetic</button>
+            <button onclick="resetPlacement()" style="background:#444">Reset</button>
+        </div>
+    </div>
+
+    <script>
+        let renderer, scene, camera, xrSession;
+        let hitTestSource = null;
+        let hitTestSourceRequested = false;
+        
+        // Product Data
+        const products = [
+            { name: "Pleated", color: 0x555555, opacity: 0.8 },
+            { name: "Roller", color: 0x222222, opacity: 0.9 },
+            { name: "Magnetic", color: 0x000000, opacity: 0.7 }
+        ];
+        let selectedProductIndex = 0;
+        let spawnedNet = null;
+        let cornerPoints = [];
+        let markers = [];
+
+        const arButton = document.getElementById('ar-button');
+        const uiContainer = document.getElementById('ui-container');
+        const dimensionLabel = document.getElementById('dimension-label');
+
+        arButton.onclick = () => {
+            navigator.xr.requestSession('immersive-ar', { requiredFeatures: ['hit-test'] }).then(onSessionStarted);
+        };
+
+        function onSessionStarted(session) {
+            xrSession = session;
+            arButton.style.display = 'none';
+            uiContainer.style.display = 'flex';
+
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.xr.enabled = true;
+            document.body.appendChild(renderer.domElement);
+
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(70, window.innerWidth / window.innerHeight, 0.01, 20);
+
+            session.addEventListener('select', onSelect);
+            renderer.xr.setSession(session);
+            animate();
+        }
+
+        function onSelect(event) {
+            const frame = event.frame;
+            const session = frame.session;
+            const referenceSpace = renderer.xr.getReferenceSpace();
+
+            if (hitTestSource) {
+                const hitTestResults = frame.getHitTestResults(hitTestSource);
+                if (hitTestResults.length > 0) {
+                    const pose = hitTestResults[0].getPose(referenceSpace);
+                    addPoint(pose.transform.position);
+                }
+            }
+        }
+
+        function addPoint(position) {
+            if (cornerPoints.length >= 4) resetPlacement();
+
+            const posVector = new THREE.Vector3(position.x, position.y, position.z);
+            cornerPoints.push(posVector);
+
+            // Add marker
+            const geo = new THREE.SphereGeometry(0.02);
+            const mat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            const marker = new THREE.Mesh(geo, mat);
+            marker.position.copy(posVector);
+            scene.add(marker);
+            markers.push(marker);
+
+            if (cornerPoints.length === 4) {
+                createNet();
+            }
+        }
+
+        function createNet() {
+            const width = cornerPoints[0].distanceTo(cornerPoints[1]);
+            const height = cornerPoints[0].distanceTo(cornerPoints[2]);
+
+            const product = products[selectedProductIndex];
+            const geometry = new THREE.PlaneGeometry(width, height);
+            const material = new THREE.MeshBasicMaterial({ 
+                color: product.color, 
+                transparent: true, 
+                opacity: product.opacity,
+                side: THREE.DoubleSide 
+            });
+
+            if (spawnedNet) scene.remove(spawnedNet);
+            spawnedNet = new THREE.Mesh(geometry, material);
+
+            // Position at center
+            const center = new THREE.Vector3().addVectors(cornerPoints[0], cornerPoints[3]).multiplyScalar(0.5);
+            spawnedNet.position.copy(center);
+            
+            // Orient toward user
+            spawnedNet.lookAt(camera.position);
+
+            scene.add(spawnedNet);
+            dimensionLabel.innerHTML = `LIVE: ${(width * 100).toFixed(1)}cm x ${(height * 100).toFixed(1)}cm`;
+        }
+
+        function selectProduct(index) {
+            selectedProductIndex = index;
+            if (cornerPoints.length === 4) createNet();
+        }
+
+        function resetPlacement() {
+            if (spawnedNet) scene.remove(spawnedNet);
+            markers.forEach(m => scene.remove(m));
+            markers = [];
+            cornerPoints = [];
+            spawnedNet = null;
+            dimensionLabel.innerHTML = "Tap 4 corners of the door";
+        }
+
+        function animate() {
+            renderer.setAnimationLoop(render);
+        }
+
+        function render(timestamp, frame) {
+            if (frame) {
+                const referenceSpace = renderer.xr.getReferenceSpace();
+                const session = frame.session;
+
+                if (!hitTestSourceRequested) {
+                    session.requestReferenceSpace('viewer').then((refSpace) => {
+                        session.requestHitTestSource({ space: refSpace }).then((source) => {
+                            hitTestSource = source;
+                        });
+                    });
+                    hitTestSourceRequested = true;
+                }
+            }
+            renderer.render(scene, camera);
+        }
+    </script>
+</body>
+</html>
